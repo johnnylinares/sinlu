@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinlú - Monitoreo Eléctrico</title>
+    <title>Sinlú - Inteligencia Eléctrica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
@@ -20,32 +20,61 @@
             --pill-text: #f8fafc;
         }
 
+        body.dark-theme {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 20px 40px -15px rgba(0,0,0,0.3);
+            --pill-bg: #f8fafc;
+            --pill-text: #0f172a;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            transition: all 0.5s ease;
+            transition: background-color 0.4s ease, color 0.4s ease;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
         body.sin-luz {
-            --bg-color: #020617; 
-            --card-bg: #0f172a;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #f97316; 
-            --border: #1e293b;
-            --shadow: 0 20px 50px -10px rgba(249, 115, 22, 0.15);
-            --pill-bg: #f8fafc;
-            --pill-text: #0f172a;
+            --bg-color: #020617 !important; 
+            --card-bg: #0f172a !important;
+            --text-main: #f8fafc !important;
+            --text-muted: #94a3b8 !important;
+            --accent: #f97316 !important; 
+            --border: #1e293b !important;
+            --shadow: 0 20px 50px -10px rgba(249, 115, 22, 0.15) !important;
+            --pill-bg: #f8fafc !important;
+            --pill-text: #0f172a !important;
         }
 
         .glass-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
             box-shadow: var(--shadow);
-            transition: all 0.5s ease;
+            transition: all 0.4s ease;
+        }
+
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo {
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+        }
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo #titulo-estado,
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo .icono-foco {
+            color: #0f172a;
+        }
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo #reloj-actual,
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo #texto-promedio,
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo #pred-titulo {
+            color: #64748b;
+        }
+        body.dark-theme:not(.sin-luz) .tarjeta-bombillo #panel-prediccion {
+            background-color: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.1);
         }
 
         @keyframes flicker {
@@ -65,128 +94,157 @@
         body.sin-luz .icono-vela { display: inline-block; }
         body.sin-luz .icono-foco { display: none; }
 
-        .timeline-line::before {
-            content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
-            width: 2px; background-color: var(--border); z-index: 0;
-        }
-
-        /* Utilidades para la SPA */
         .page-view { display: none; animation: fadeIn 0.4s ease forwards; }
         .page-view.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Menú lateral */
         #mobile-menu { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
         #mobile-menu.open { transform: translateX(0); }
     </style>
 </head>
 <body class="flex flex-col items-center">
 
-    <header class="w-full glass-card sticky top-0 z-50 px-6 py-4 flex justify-between items-center rounded-b-2xl border-t-0">
-        <div class="flex items-center gap-2 font-black text-xl tracking-tight">
+    <header class="w-full glass-card sticky top-0 z-50 px-6 py-4 flex justify-between items-center rounded-b-2xl border-t-0 max-w-lg mx-auto">
+        <div class="flex items-center gap-2 font-black text-xl tracking-tight cursor-pointer" onclick="switchPage('home')">
             <span class="text-[var(--accent)]">⚡</span> Sinlú
         </div>
         
-        <!-- Botón Menú Hamburguesa -->
-        <button onclick="toggleMenu()" class="p-2 rounded-lg hover:bg-black hover:bg-opacity-5 focus:outline-none">
-            <svg class="w-6 h-6 text-[var(--text-main)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-        </button>
+        <div class="flex items-center gap-2">
+            <!-- Botón Tema Claro / Oscuro -->
+            <button onclick="toggleTheme()" class="p-2 rounded-xl bg-black bg-opacity-5 hover:bg-opacity-10 focus:outline-none transition-colors" title="Cambiar tema">
+                <span id="theme-icon" class="text-xl">🌙</span>
+            </button>
+
+            <!-- Botón Menú Hamburguesa -->
+            <button onclick="toggleMenu()" class="p-2 rounded-xl hover:bg-black hover:bg-opacity-5 focus:outline-none transition-colors">
+                <svg class="w-6 h-6 text-[var(--text-main)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
     </header>
 
-    <!-- Overlay y Menú Lateral -->
     <div id="menu-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity"></div>
-    <nav id="mobile-menu" class="fixed right-0 top-0 bottom-0 w-64 glass-card z-50 p-6 flex flex-col gap-4 shadow-2xl">
+    <nav id="mobile-menu" class="fixed right-0 top-0 bottom-0 w-64 glass-card z-50 p-6 flex flex-col gap-4 shadow-2xl border-l border-[var(--border)]">
         <div class="flex justify-end">
-            <button onclick="toggleMenu()" class="p-2 text-[var(--text-muted)] hover:text-[var(--text-main)]">
+            <button onclick="toggleMenu()" class="p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
         <div class="text-xs uppercase font-bold text-[var(--text-muted)] tracking-wider mb-2">Navegación</div>
         <button onclick="switchPage('home')" class="text-left font-semibold text-lg flex items-center gap-3 p-3 rounded-xl hover:bg-black hover:bg-opacity-5 transition">
-            🏠 Panel Principal
+            🏠 Inicio
         </button>
         <button onclick="switchPage('history')" class="text-left font-semibold text-lg flex items-center gap-3 p-3 rounded-xl hover:bg-black hover:bg-opacity-5 transition">
-            📅 Historial Completo
+            📅 Historial
         </button>
     </nav>
 
-    <main id="home" class="page-view active w-full max-w-lg mx-auto flex-col gap-6 p-4 md:p-8">
+    <main id="home" class="page-view active w-full max-w-lg mx-auto flex-col gap-6 p-4 md:p-6 mt-2">
         
-        <!-- Tarjeta de Estado Actual -->
-        <div class="glass-card rounded-3xl p-8 text-center relative overflow-hidden">
-            <div class="text-7xl mb-4">
+        <!-- Tarjeta de Estado Actual (Bombillo) -->
+        <div class="tarjeta-bombillo glass-card rounded-[2rem] p-8 text-center relative overflow-hidden">
+            <div class="text-7xl mb-4 relative z-10">
                 <span class="icono-foco">💡</span>
-                <span class="icono-vela">🕯️</span>
+                <span class="icono-vela">🕯️️</span>
             </div>
             
-            <h1 id="titulo-estado" class="text-5xl font-black tracking-tight mb-2">Conlú</h1>
-            <p id="reloj-actual" class="text-lg text-[var(--text-muted)] font-medium mb-6">--:--:--</p>
+            <h1 id="titulo-estado" class="text-5xl font-black tracking-tight mb-2 relative z-10">Conlú</h1>
+            <p id="reloj-actual" class="text-lg text-[var(--text-muted)] font-medium mb-6 relative z-10">--:--:--</p>
 
-            <!-- Panel Predictivo / Estadísticas -->
-            <div id="panel-prediccion" class="bg-opacity-10 border border-opacity-20 rounded-2xl p-4 mt-4 transition-colors">
+            <!-- Panel Predictivo -->
+            <div id="panel-prediccion" class="bg-opacity-10 border border-opacity-20 rounded-2xl p-4 mt-4 transition-all relative z-10 shadow-sm">
                 <p class="text-sm uppercase tracking-wider font-bold mb-1" id="pred-titulo">Cargando datos...</p>
                 
-                <!-- Modo Sin Luz: Muestra cuenta regresiva -->
                 <div id="pred-activa" class="hidden flex-col items-center justify-center gap-1">
                     <span class="font-medium text-[var(--text-main)] flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Regreso estimado: <span id="hora-estimada" class="font-bold text-xl">--:--</span>
                     </span>
                 </div>
-
-                <!-- Siempre visible: Promedio general -->
                 <p id="texto-promedio" class="text-sm text-[var(--text-muted)] mt-2 font-medium"></p>
             </div>
         </div>
 
-        <!-- Tarjeta de Últimos Registros (Solo 3) -->
+        <!-- Tarjeta de Resumen Reciente -->
         <div class="glass-card rounded-3xl p-6 md:p-8">
-            <div class="flex justify-between items-center mb-6 border-b border-[var(--border)] pb-4">
+            <div class="flex justify-between items-center mb-2">
                 <h2 class="text-lg font-bold flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Últimos Cortes
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Análisis de Cortes
                 </h2>
-                <button onclick="switchPage('history')" class="text-sm font-semibold text-[var(--accent)] hover:underline">Ver todos &rarr;</button>
+                <button onclick="switchPage('history')" class="text-sm font-semibold text-[var(--accent)] bg-[var(--accent)] bg-opacity-10 px-3 py-1 rounded-full hover:bg-opacity-20 transition-colors">Ver todos</button>
             </div>
             
-            <div id="recent-timeline" class="relative timeline-line flex flex-col gap-6">
-                <!-- Se inyecta por JS -->
+            <div id="recent-timeline" class="flex flex-col">
+                <!-- Se inyecta por JS agrupado por fechas -->
             </div>
         </div>
     </main>
 
-    <main id="history" class="page-view w-full max-w-lg mx-auto flex-col gap-6 p-4 md:p-8">
+    <main id="history" class="page-view w-full max-w-lg mx-auto flex-col gap-6 p-4 md:p-6 mt-2">
         <div class="glass-card rounded-3xl p-6 md:p-8">
-            <h2 class="text-2xl font-black mb-2">Historial de Cortes</h2>
-            <p class="text-[var(--text-muted)] mb-6 pb-4 border-b border-[var(--border)]">Registro completo de las fluctuaciones eléctricas detectadas por el sistema.</p>
+            <h2 class="text-2xl font-black mb-2 flex items-center gap-2">
+                📅 Historial Completo
+            </h2>
+            <p class="text-[var(--text-muted)] text-sm mb-4 pb-4 border-b border-[var(--border)]">
+                Registro organizado cronológicamente de todas las fallas eléctricas detectadas.
+            </p>
             
-            <div id="full-timeline" class="relative timeline-line flex flex-col gap-6">
-                <!-- Se inyecta por JS -->
+            <div id="full-timeline" class="flex flex-col">
+                <!-- Se inyecta por JS agrupado por fechas -->
             </div>
         </div>
     </main>
 
     <script>
-        // --- NAVEGACIÓN Y MENÚ ---
+        // --- TEMA CLARO/OSCURO ---
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        // Cargar tema guardado o preferencia del sistema
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark-theme');
+            document.getElementById('theme-icon').innerText = '☀️';
+        }
+
+        // --- NAVEGACIÓN SPA CON HISTORIAL NATIVO (BACK BUTTON) ---
         let menuOpen = false;
         function toggleMenu() {
             menuOpen = !menuOpen;
             document.getElementById('mobile-menu').classList.toggle('open', menuOpen);
-            
             const overlay = document.getElementById('menu-overlay');
-            if(menuOpen) {
-                overlay.classList.remove('hidden');
-            } else {
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
+            if(menuOpen) overlay.classList.remove('hidden');
+            else setTimeout(() => overlay.classList.add('hidden'), 300);
         }
 
-        function switchPage(pageId) {
+        function switchPage(pageId, pushToHistory = true) {
             document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             if(menuOpen) toggleMenu();
-            window.scrollTo(0,0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Manejo de la URL e historial nativo del teléfono
+            if (pushToHistory) {
+                history.pushState({ page: pageId }, '', `?page=${pageId}`);
+            }
         }
+
+        // Escuchar el botón "Atrás" del teléfono o navegador
+        window.addEventListener('popstate', (event) => {
+            const page = event.state ? event.state.page : 'home';
+            switchPage(page, false); // false para no re-agregar al historial
+        });
+
+        // Configurar estado inicial al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const initialPage = params.get('page') || 'home';
+            history.replaceState({ page: initialPage }, '', `?page=${initialPage}`);
+            switchPage(initialPage, false);
+        });
 
         // --- RELOJ Y UTILIDADES ---
         const tz = { timeZone: 'America/Caracas' };
@@ -204,53 +262,93 @@
             return `${mins}m`;
         }
 
-        // --- RENDERIZADO DE TARJETAS (Mejorado) ---
+        // --- GENERADOR DE TARJETAS DE CORTES ---
         function generarHTMLTarjeta(evento, esCorteActual) {
             const fechaCorte = new Date(evento.corte);
-            const diaCorte = fechaCorte.toLocaleDateString('es-VE', { ...tz, weekday: 'short', day: 'numeric', month: 'short' });
             const horaCorte = fechaCorte.toLocaleTimeString('es-VE', { ...tz, hour: '2-digit', minute:'2-digit' });
             
             let colorPunto, infoLlegada, duracionStr;
 
             if (esCorteActual) {
-                colorPunto = 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]';
-                infoLlegada = `<span class="text-orange-500 font-semibold animate-pulse">En curso...</span>`;
+                colorPunto = 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse';
+                infoLlegada = `<span class="text-orange-500 font-semibold">En curso...</span>`;
                 const duracionHastaAhora = new Date().getTime() - fechaCorte.getTime();
                 duracionStr = msToText(duracionHastaAhora);
             } else {
-                colorPunto = 'bg-gray-400 border-2 border-[var(--card-bg)]';
+                colorPunto = 'bg-[var(--text-muted)]';
                 const horaRegreso = new Date(evento.regreso).toLocaleTimeString('es-VE', { ...tz, hour: '2-digit', minute:'2-digit' });
-                infoLlegada = `<span class="text-[var(--text-main)]">🟢 Volvió: <b>${horaRegreso}</b></span>`;
+                infoLlegada = `<span class="text-[var(--text-main)]">🟢 Regresó a las <b>${horaRegreso}</b></span>`;
                 duracionStr = msToText(evento.duracionMs);
             }
 
-            // Nueva estructura de tarjeta ultra-clara
+            // Nueva tarjeta simplificada para el grupo
             return `
-            <div class="relative pl-10 z-10 pb-2">
-                <div class="absolute left-[11px] top-4 w-2.5 h-2.5 rounded-full ${colorPunto} z-20"></div>
+            <div class="relative pl-6 pb-4 z-10">
+                <div class="absolute left-[-5px] top-4 w-3 h-3 rounded-full ${colorPunto} ring-4 ring-[var(--bg-color)] z-20"></div>
                 
-                <div class="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     
-                    <!-- Fecha Superior -->
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="text-sm font-black uppercase text-[var(--text-muted)] tracking-wider">${diaCorte}</div>
-                        <!-- Etiqueta de duración (Colores arreglados) -->
-                        <div class="bg-[var(--pill-bg)] text-[var(--pill-text)] px-3 py-1 rounded-full text-xs font-bold shadow-inner">
-                            ⏱️ ${duracionStr}
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[var(--text-main)] text-sm font-medium">🔴 Se fue a las <b>${horaCorte}</b></span>
+                        </div>
+                        <div class="bg-[var(--pill-bg)] text-[var(--pill-text)] px-3 py-1 rounded-md text-xs font-bold shadow-inner flex items-center gap-1">
+                            <span>⏱️</span> ${duracionStr}
                         </div>
                     </div>
                     
-                    <!-- Detalles del corte -->
-                    <div class="flex flex-col gap-2 text-sm mt-2">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[var(--text-main)]">🔴 Se fue: <b>${horaCorte}</b></span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            ${infoLlegada}
-                        </div>
+                    <div class="flex items-center gap-2 text-sm mt-1">
+                        ${infoLlegada}
                     </div>
                 </div>
             </div>`;
+        }
+
+        // --- SISTEMA DE AGRUPACIÓN POR FECHA (TIMELINE) ---
+        function renderizarTimelineAgrupado(historial, containerId, limite = null) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (historial.length === 0) {
+                container.innerHTML = '<p class="text-center text-sm text-[var(--text-muted)] italic py-6">Aún no hay registros de cortes en la base de datos.</p>';
+                return;
+            }
+
+            let htmlFinal = '';
+            let fechaAnterior = '';
+            let lineaAbierta = false;
+            
+            const maxIteraciones = limite ? Math.min(limite, historial.length) : historial.length;
+
+            for(let i = 0; i < maxIteraciones; i++) {
+                const evento = historial[i];
+                const fecha = new Date(evento.corte);
+                
+                // Formatear día (Ej: "Jueves, 5 Oct")
+                let diaStr = fecha.toLocaleDateString('es-VE', { ...tz, weekday: 'long', day: 'numeric', month: 'short' });
+                diaStr = diaStr.charAt(0).toUpperCase() + diaStr.slice(1);
+
+                // Si cambiamos de día, creamos un nuevo grupo
+                if (diaStr !== fechaAnterior) {
+                    if (lineaAbierta) htmlFinal += `</div>`; // Cerramos la línea del día anterior
+                    
+                    htmlFinal += `
+                    <div class="flex items-center gap-3 mt-6 mb-4 relative z-10">
+                        <span class="text-xs font-bold uppercase text-[var(--text-main)] tracking-wider px-3 py-1.5 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-sm">${diaStr}</span>
+                        <div class="h-px bg-[var(--border)] flex-grow opacity-50"></div>
+                    </div>
+                    <div class="relative border-l-2 border-[var(--border)] ml-3 pl-0 flex flex-col">
+                    `;
+                    fechaAnterior = diaStr;
+                    lineaAbierta = true;
+                }
+
+                const esCorteActual = !evento.regreso;
+                htmlFinal += generarHTMLTarjeta(evento, esCorteActual);
+            }
+            
+            if (lineaAbierta) htmlFinal += `</div>`; // Cerrar la última línea
+            container.innerHTML = htmlFinal;
         }
 
         // --- CEREBRO PRINCIPAL ---
@@ -259,10 +357,15 @@
                 const res = await fetch('/api/status');
                 const data = await res.json();
                 
-                // 1. Aplicar estado visual
+                // 1. Aplicar estado visual general
                 const isLuz = data.actual.luz;
-                document.body.className = isLuz ? '' : 'sin-luz';
-                document.getElementById('titulo-estado').innerText = isLuz ? 'Conlú' : 'Sinlú';
+                if(isLuz) {
+                    document.body.classList.remove('sin-luz');
+                    document.getElementById('titulo-estado').innerText = 'Conlú';
+                } else {
+                    document.body.classList.add('sin-luz');
+                    document.getElementById('titulo-estado').innerText = 'Sinlú';
+                }
 
                 // 2. Panel Predictivo
                 const panel = document.getElementById('panel-prediccion');
@@ -271,61 +374,39 @@
                 const textoPromedio = document.getElementById('texto-promedio');
 
                 if (data.estadisticas.promedioMs > 0) {
-                    const textoPromedioSt = `Promedio histórico: ${msToText(data.estadisticas.promedioMs)} (${data.estadisticas.totalCortes} cortes)`;
+                    const textoPromedioSt = `Basado en el promedio histórico de ${msToText(data.estadisticas.promedioMs)} (${data.estadisticas.totalCortes} cortes)`;
                     textoPromedio.innerText = textoPromedioSt;
 
                     if (!isLuz) {
-                        // MODO SIN LUZ: Mostrar cuenta regresiva de la predicción
-                        panel.className = "bg-[var(--accent)] bg-opacity-20 border border-[var(--accent)] rounded-2xl p-4 mt-4 transition-colors text-[var(--accent)]";
+                        // MODO SIN LUZ: Alerta naranja
+                        panel.className = "bg-[var(--accent)] bg-opacity-20 border border-[var(--accent)] rounded-2xl p-4 mt-4 transition-colors text-[var(--accent)] shadow-sm";
                         predTitulo.innerText = "Algoritmo Predictivo Activo";
                         predTitulo.className = "text-sm uppercase tracking-wider font-bold mb-2 text-[var(--accent)]";
                         predActiva.classList.remove('hidden');
                         
-                        // Calcular hora de regreso
+                        // Hora de regreso
                         const tiempoCorte = new Date(data.actual.timestamp).getTime();
                         const tiempoEstimadoRegreso = new Date(tiempoCorte + data.estadisticas.promedioMs);
                         document.getElementById('hora-estimada').innerText = tiempoEstimadoRegreso.toLocaleTimeString('es-VE', { ...tz, hour: '2-digit', minute:'2-digit' });
                         
                     } else {
-                        // MODO CON LUZ: Solo mostrar estadísticas tranquilas
+                        // MODO CON LUZ: Discreto
                         panel.className = "bg-[var(--text-main)] bg-opacity-5 border border-[var(--border)] rounded-2xl p-4 mt-4 transition-colors";
                         predTitulo.innerText = "Estadísticas del Sistema";
                         predTitulo.className = "text-sm uppercase tracking-wider font-bold mb-1 text-[var(--text-muted)]";
                         predActiva.classList.add('hidden');
                     }
                 } else {
-                    textoPromedio.innerText = "Esperando más cortes para aprender y predecir.";
+                    textoPromedio.innerText = "Esperando recolectar más cortes para calcular predicciones.";
                     predActiva.classList.add('hidden');
                 }
 
-                // 3. Renderizar Líneas de Tiempo
-                const recentContainer = document.getElementById('recent-timeline');
-                const fullContainer = document.getElementById('full-timeline');
-                
-                recentContainer.innerHTML = '';
-                fullContainer.innerHTML = '';
-
-                if (data.historial.length === 0) {
-                    const vacio = '<p class="text-center text-sm text-[var(--text-muted)] italic py-4">Aún no hay registros en la base de datos.</p>';
-                    recentContainer.innerHTML = vacio;
-                    fullContainer.innerHTML = vacio;
-                    return;
-                }
-
-                // Inyectar Historial Completo
-                data.historial.forEach((evento, index) => {
-                    const esCorteActual = !evento.regreso;
-                    const html = generarHTMLTarjeta(evento, esCorteActual);
-                    fullContainer.insertAdjacentHTML('beforeend', html);
-                    
-                    // Inyectar solo los 3 primeros en el panel principal
-                    if (index < 3) {
-                        recentContainer.insertAdjacentHTML('beforeend', html);
-                    }
-                });
+                // 3. Renderizar Líneas de Tiempo Agrupadas
+                renderizarTimelineAgrupado(data.historial, 'recent-timeline', 3);
+                renderizarTimelineAgrupado(data.historial, 'full-timeline', null);
 
             } catch (e) {
-                console.error("Error contactando al cerebro", e);
+                console.error("Error conectando al cerebro backend", e);
             }
         }
         
