@@ -1,15 +1,17 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Vercel inyectará estas variables de entorno de forma segura
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 module.exports = async (req, res) => {
+    // Solo permitimos peticiones GET para leer los datos
     if (req.method === 'GET') {
-        // Obtenemos los últimos 5 eventos
+        // Ahora traemos los últimos 100 eventos para armar un historial útil
         const { data: historial, error } = await supabase
             .from('events')
             .select('*')
             .order('id', { ascending: false })
-            .limit(5);
+            .limit(100);
 
         if (error) {
             return res.status(500).json({ error: error.message });

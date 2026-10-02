@@ -3,79 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sinlú - Monitor Eléctrico</title>
+    <title>Sinlú - Monitor de Energía</title>
     <style>
+        /* Variables de diseño (Temas) */
         :root {
-            --bg-conlu: linear-gradient(135deg, #ffffff 0%, #fff9c4 100%);
-            --card-conlu: rgba(255, 255, 255, 0.7);
-            --text-conlu: #f57f17;
-            
-            --bg-sinlu: linear-gradient(135deg, #020617 0%, #0c4a6e 100%);
-            --card-sinlu: rgba(15, 23, 42, 0.7);
-            --text-sinlu: #38bdf8;
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --border-color: #e2e8f0;
+            --accent-color: #eab308; /* Amarillo Conlú */
+            --accent-glow: rgba(234, 179, 8, 0.2);
         }
+
+        .sinlu {
+            --bg-color: #020617; /* Azul noche ultra oscuro */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: #0f172a;
+            --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            --border-color: #1e293b;
+            --accent-color: #f97316; /* Naranja Vela */
+            --accent-glow: rgba(249, 115, 22, 0.15);
+        }
+
+        /* Estilos Base */
         body {
-            margin: 0; min-height: 100vh;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            margin: 0;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             font-family: system-ui, -apple-system, sans-serif;
-            transition: background 1s ease, color 1s ease;
+            transition: background-color 0.8s ease, color 0.8s ease;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Tarjeta Principal */
+        .status-card {
+            background-color: var(--card-bg);
+            border-radius: 2rem;
+            padding: 3rem 2rem;
             text-align: center;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.8s ease;
+            position: relative;
+            overflow: hidden;
         }
-        body.conlu { background: var(--bg-conlu); color: #334155; }
-        body.sinlu { background: var(--bg-sinlu); color: #f8fafc; }
 
-        .card {
-            padding: 3rem 4rem; border-radius: 2rem;
-            transition: all 0.5s ease;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        /* Resplandor de fondo */
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 300px;
+            background: var(--accent-glow);
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: 0;
+            transition: background 0.8s ease;
         }
-        body.conlu .card { background: var(--card-conlu); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 40px rgba(250, 204, 21, 0.3); }
-        body.sinlu .card { background: var(--card-sinlu); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 40px rgba(2, 132, 199, 0.4); }
 
-        h1 { font-size: 4.5rem; margin: 0; letter-spacing: -1px; transition: color 0.5s ease; }
-        body.conlu h1 { color: var(--text-conlu); }
-        body.sinlu h1 { color: var(--text-sinlu); }
+        .status-content { position: relative; z-index: 1; }
 
-        .reloj { font-size: 1.5rem; margin-top: 10px; font-weight: 500; opacity: 0.8; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+            75% { opacity: 0.9; transform: scale(1.02); }
+        }
+
+        .icon {
+            font-size: 6rem;
+            display: inline-block;
+            margin-bottom: 1rem;
+            transition: opacity 0.5s ease;
+        }
         
-        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
-        .icon { font-size: 6rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+        .conlu .icon { animation: float 4s ease-in-out infinite; }
+        .sinlu .icon { animation: flicker 2s linear infinite; filter: drop-shadow(0 0 20px rgba(249,115,22,0.4)); }
 
-        .historial { margin-top: 2rem; text-align: left; background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 1.5rem; width: 100%; max-width: 300px; }
-        body.sinlu .historial { background: rgba(255,255,255,0.05); }
-        .historial h3 { margin-top: 0; font-size: 1rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
-        .historial ul { list-style: none; padding: 0; margin: 0; font-size: 0.95rem; }
-        .historial li { padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.2); }
-        .historial li:last-child { border: none; }
+        h1 {
+            font-size: 3.5rem;
+            margin: 0;
+            letter-spacing: -2px;
+            font-weight: 800;
+        }
+
+        .clock {
+            font-size: 1.25rem;
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Sección de Historial (Timeline) */
+        .history-section {
+            background-color: var(--card-bg);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.8s ease;
+        }
+
+        .history-title {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Línea de tiempo */
+        .timeline-group { margin-bottom: 1.5rem; }
+        
+        .timeline-date {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .timeline {
+            border-left: 2px solid var(--border-color);
+            margin-left: 0.5rem;
+            padding-left: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Punto de la línea de tiempo */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.85rem; /* Ajuste para centrar en la línea */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            border: 3px solid var(--card-bg);
+        }
+
+        .timeline-item.type-on::before { background-color: var(--accent-color); }
+        .timeline-item.type-off::before { background-color: #ef4444; } /* Rojo para corte */
+
+        .event-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .event-icon { font-size: 1.2rem; }
+        .event-text { font-weight: 500; }
+        .event-time { color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+        .empty-state { text-align: center; color: var(--text-muted); padding: 2rem 0; font-style: italic; }
     </style>
 </head>
-<body class="conlu" id="app-body">
-    <div class="card">
-        <span class="icon" id="icono">💡</span>
-        <h1 id="titulo">Conlú</h1>
-        <div class="reloj" id="reloj">Cargando hora...</div>
-    </div>
-    
-    <div class="historial">
-        <h3>Últimos Eventos (Nube)</h3>
-        <ul id="lista-eventos"></ul>
+<body id="app-body">
+    <div class="container">
+        <!-- Tarjeta Principal -->
+        <div class="status-card">
+            <div class="status-content">
+                <div class="icon" id="icono">⏳</div>
+                <h1 id="titulo">Cargando...</h1>
+                <div class="clock" id="reloj">--:--:--</div>
+            </div>
+        </div>
+        
+        <!-- Panel de Historial -->
+        <div class="history-section">
+            <h2 class="history-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Registro de Eventos
+            </h2>
+            <div id="contenedor-historial">
+                <div class="empty-state">Buscando datos en la nube...</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Reloj en tiempo real (Hora Venezuela)
+        // Reloj en tiempo real
         setInterval(() => {
             const options = { timeZone: 'America/Caracas', hour12: true, hour: '2-digit', minute:'2-digit', second:'2-digit' };
-            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-VE', options) + " (VE)";
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString('es-VE', options);
         }, 1000);
 
         async function actualizarEstado() {
             try {
-                // Llama a la Serverless Function de Vercel
                 const res = await fetch('/api/status');
                 const data = await res.json();
                 
+                // 1. Actualizar Tema e Interfaz Principal
                 const body = document.getElementById('app-body');
                 const titulo = document.getElementById('titulo');
                 const icono = document.getElementById('icono');
@@ -87,25 +241,75 @@
                 } else {
                     body.className = 'sinlu';
                     titulo.innerText = 'Sinlú';
-                    icono.innerText = '🔌';
+                    icono.innerText = '🕯️'; // La vela pedida
                 }
 
-                const lista = document.getElementById('lista-eventos');
-                lista.innerHTML = '';
-                if (data.historial.length === 0) lista.innerHTML = '<li>Sin registros aún</li>';
+                // 2. Procesar Historial (Agrupar por días)
+                const contenedor = document.getElementById('contenedor-historial');
+                
+                if (!data.historial || data.historial.length === 0) {
+                    contenedor.innerHTML = '<div class="empty-state">No hay cortes registrados aún.</div>';
+                    return;
+                }
+
+                // Agrupamos los eventos por fecha
+                const gruposPorDia = {};
+                
                 data.historial.forEach(evento => {
-                    const date = new Date(evento.timestamp).toLocaleTimeString('es-VE', {timeZone: 'America/Caracas', hour: '2-digit', minute:'2-digit'});
-                    const li = document.createElement('li');
-                    li.innerText = `${evento.luz ? '💡 Llegó' : '🔌 Se fue'} - ${date}`;
-                    lista.appendChild(li);
+                    const fechaObj = new Date(evento.timestamp);
+                    
+                    // Formatear día (Ej: "Viernes, 2 de Octubre")
+                    const opcionesDia = { timeZone: 'America/Caracas', weekday: 'long', day: 'numeric', month: 'long' };
+                    let nombreDia = fechaObj.toLocaleDateString('es-VE', opcionesDia);
+                    
+                    // Capitalizar la primera letra
+                    nombreDia = nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1);
+
+                    if (!gruposPorDia[nombreDia]) {
+                        gruposPorDia[nombreDia] = [];
+                    }
+                    gruposPorDia[nombreDia].push({
+                        luz: evento.luz,
+                        hora: fechaObj.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit' })
+                    });
                 });
+
+                // 3. Renderizar el HTML del Historial
+                let htmlHistorial = '';
+                
+                for (const [dia, eventos] of Object.entries(gruposPorDia)) {
+                    htmlHistorial += `<div class="timeline-group">
+                        <div class="timeline-date">${dia}</div>
+                        <div class="timeline">`;
+                    
+                    eventos.forEach(evt => {
+                        const tipoClase = evt.luz ? 'type-on' : 'type-off';
+                        const emoji = evt.luz ? '💡' : '🕯️';
+                        const texto = evt.luz ? 'Regresó la energía' : 'Corte eléctrico';
+                        
+                        htmlHistorial += `
+                            <div class="timeline-item ${tipoClase}">
+                                <div class="event-info">
+                                    <span class="event-icon">${emoji}</span>
+                                    <span class="event-text">${texto}</span>
+                                </div>
+                                <span class="event-time">${evt.hora}</span>
+                            </div>`;
+                    });
+                    
+                    htmlHistorial += `</div></div>`;
+                }
+
+                contenedor.innerHTML = htmlHistorial;
+
             } catch (e) {
-                console.error("Error conectando con la API");
+                console.error("Error conectando con la API", e);
             }
         }
         
-        setInterval(actualizarEstado, 3000);
-        actualizarEstado();
+        // Refrescar cada 5 segundos
+        setInterval(actualizarEstado, 5000);
+        actualizarEstado(); // Llamada inicial
     </script>
 </body>
 </html>
